@@ -130,8 +130,15 @@ async function saveCardEdit(cardId, fields) {
 }
 
 async function insertCards(newCards) {
+  // Re-fetch session to make sure we have a valid user
+  const { data: sessionData } = await sb.auth.getSession();
+  const currentUserId = sessionData?.session?.user?.id;
+  if (!currentUserId) {
+    showImportMsg('❌ Session expirée, reconnecte-toi.', 'warn');
+    return 0;
+  }
   const rows = newCards.map(c => ({
-    user_id: userId,
+    user_id: currentUserId,
     theme: c.theme || '',
     fr: c.fr || '',
     genre: c.genre || '',
@@ -144,7 +151,7 @@ async function insertCards(newCards) {
   showSaving();
   const { data, error } = await sb.from('vocabulary').insert(rows).select();
   hideSaving();
-  if (error) { console.error(error); return 0; }
+  if (error) { showImportMsg('❌ Erreur Supabase : ' + error.message, 'warn'); return 0; }
   const inserted = data.map(r => ({
     id: r.id, theme: r.theme, fr: r.fr, genre: r.genre,
     itSg: r.it_sg, itPl: r.it_pl, tip: r.tip,
