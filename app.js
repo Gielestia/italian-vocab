@@ -75,6 +75,8 @@ async function logout() {
   document.getElementById('auth-msg').innerHTML = '';
 }
 
+window.logout = logout;
+
 // ── INIT ──────────────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async (event, session) => {
   console.log("AUTH EVENT:", event, session);
