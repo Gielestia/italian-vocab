@@ -7,7 +7,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let cards = [];
 let currentCard = null;
 let flipped = false;
-let mode = 'card'; // 'card' | 'reverse' | 'list'
+let mode = 'card';
 let selectedTheme = 'all';
 let selectedFilter = 'all';
 let expandedId = null;
@@ -24,7 +24,7 @@ const STATUS_STYLE = {
   toLearn:  { bg: '#fee2e2', color: '#dc2626' },
 };
 
-// ── AUTH ─────────────────────────────────────────────────────────
+// ── AUTH ──────────────────────────────────────────────────────────
 function switchTab(tab) {
   document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
@@ -73,7 +73,7 @@ async function logout() {
   document.getElementById('auth-msg').innerHTML = '';
 }
 
-// ── INIT ─────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     userId = session.user.id;
@@ -87,24 +87,16 @@ sb.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-// ── DATA ─────────────────────────────────────────────────────────
+// ── DATA ──────────────────────────────────────────────────────────
 async function loadCards() {
   const { data, error } = await sb.from('vocabulary').select('*').eq('user_id', userId).order('created_at');
   if (error) { console.error(error); return; }
   cards = data.map(r => ({
-    id: r.id,
-    theme: r.theme || '',
-    fr: r.fr || '',
-    genre: r.genre || '',
-    itSg: r.it_sg || '',
-    itPl: r.it_pl || '',
-    tip: r.tip || '',
-    status: r.status || 'unseen',
-    retryCount: r.retry_count || 0,
+    id: r.id, theme: r.theme || '', fr: r.fr || '', genre: r.genre || '',
+    itSg: r.it_sg || '', itPl: r.it_pl || '', tip: r.tip || '',
+    status: r.status || 'unseen', retryCount: r.retry_count || 0,
   }));
-  updateThemes();
-  updateStats();
-  renderList();
+  updateThemes(); updateStats(); renderList();
 }
 
 async function saveCardStatus(cardId, status, retryCount) {
@@ -119,37 +111,21 @@ async function saveCardStatus(cardId, status, retryCount) {
 async function saveCardEdit(cardId, fields) {
   showSaving();
   const { error } = await sb.from('vocabulary')
-    .update({
-      theme: fields.theme,
-      fr: fields.fr,
-      genre: fields.genre,
-      it_sg: fields.itSg,
-      it_pl: fields.itPl,
-      tip: fields.tip,
-    })
+    .update({ theme: fields.theme, fr: fields.fr, genre: fields.genre,
+              it_sg: fields.itSg, it_pl: fields.itPl, tip: fields.tip })
     .eq('id', cardId).eq('user_id', userId);
   if (error) console.error(error);
   hideSaving();
 }
 
 async function insertCards(newCards) {
-  // Re-fetch session to make sure we have a valid user
   const { data: sessionData } = await sb.auth.getSession();
   const currentUserId = sessionData?.session?.user?.id;
-  if (!currentUserId) {
-    showImportMsg('❌ Session expirée, reconnecte-toi.', 'warn');
-    return 0;
-  }
+  if (!currentUserId) { showImportMsg('❌ Session expirée, reconnecte-toi.', 'warn'); return 0; }
   const rows = newCards.map(c => ({
-    user_id: currentUserId,
-    theme: c.theme || '',
-    fr: c.fr || '',
-    genre: c.genre || '',
-    it_sg: c.itSg || '',
-    it_pl: c.itPl || '',
-    tip: c.tip || '',
-    status: 'unseen',
-    retry_count: 0,
+    user_id: currentUserId, theme: c.theme || '', fr: c.fr || '', genre: c.genre || '',
+    it_sg: c.itSg || '', it_pl: c.itPl || '', tip: c.tip || '',
+    status: 'unseen', retry_count: 0,
   }));
   showSaving();
   const { data, error } = await sb.from('vocabulary').insert(rows).select();
@@ -178,10 +154,7 @@ function getFiltered() {
 
 function weightedRandom(pool) {
   const weighted = [];
-  for (const c of pool) {
-    const w = WEIGHTS[c.status] ?? 2;
-    for (let i = 0; i < w; i++) weighted.push(c);
-  }
+  for (const c of pool) { const w = WEIGHTS[c.status] ?? 2; for (let i = 0; i < w; i++) weighted.push(c); }
   if (!weighted.length) return null;
   return weighted[Math.floor(Math.random() * weighted.length)];
 }
@@ -214,35 +187,25 @@ function speak(text, e) {
   e && e.stopPropagation();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'it-IT'; u.rate = 0.85;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 
-// ── CARD LOGIC ────────────────────────────────────────────────────
+// ── CARD LOGIC ───────────────────────────────────────────────────
 function pickNext(excludeId = null) {
   const pool = getFiltered().filter(c => c.id !== excludeId);
   const next = weightedRandom(pool);
   flipped = false;
-
   const cardEl = document.getElementById(mode === 'reverse' ? 'reverse-card' : 'main-card');
   if (cardEl) {
     cardEl.classList.add('animating');
-    setTimeout(() => {
-      currentCard = next;
-      renderCard();
-      cardEl.classList.remove('animating');
-    }, 200);
+    setTimeout(() => { currentCard = next; renderCard(); cardEl.classList.remove('animating'); }, 200);
   } else {
     currentCard = next;
     renderCard();
   }
 }
 
-function flipCard() {
-  if (!currentCard) return;
-  flipped = !flipped;
-  renderCard();
-}
+function flipCard() { if (!currentCard) return; flipped = !flipped; renderCard(); }
 
 function renderCard() {
   if (mode === 'card') renderCardMode();
@@ -251,12 +214,33 @@ function renderCard() {
 }
 
 function renderCardMode() {
-  const el = document.getElementById('card-content');
   const pool = getFiltered();
+  const cardView = document.getElementById('card-view');
+
   if (!currentCard || pool.length === 0) {
-    document.getElementById('card-view').innerHTML = renderEmptyState(pool);
+    cardView.innerHTML = renderEmptyState(pool);
     return;
   }
+
+  // ✅ FIX: Si card-content a été détruit par l'empty state, on restaure la structure
+  let el = document.getElementById('card-content');
+  if (!el) {
+    cardView.innerHTML = `
+      <div class="card-wrapper">
+        <button class="btn-edit-card" onclick="openEdit(currentCard)">✏️</button>
+        <div class="card" id="main-card" onclick="flipCard()">
+          <div id="card-content"></div>
+        </div>
+      </div>
+      <div class="action-btns">
+        <button class="btn-acquired" onclick="setStatus('acquired')">✅ Acquis</button>
+        <button class="btn-known" onclick="setStatus('known')">👍 Connu</button>
+        <button class="btn-tolearn" onclick="setStatus('toLearn')" id="btn-tolearn-card">🔁 À revoir</button>
+      </div>
+      <div class="pool-count" id="pool-count-card"></div>`;
+    el = document.getElementById('card-content');
+  }
+
   const c = currentCard;
   const statusStyle = STATUS_STYLE[c.status];
 
@@ -287,12 +271,33 @@ function renderCardMode() {
 }
 
 function renderReverseMode() {
-  const el = document.getElementById('reverse-content');
   const pool = getFiltered();
+  const reverseView = document.getElementById('reverse-view');
+
   if (!currentCard || pool.length === 0) {
-    document.getElementById('reverse-view').innerHTML = renderEmptyState(pool);
+    reverseView.innerHTML = renderEmptyState(pool);
     return;
   }
+
+  // ✅ FIX: Si reverse-content a été détruit par l'empty state, on restaure la structure
+  let el = document.getElementById('reverse-content');
+  if (!el) {
+    reverseView.innerHTML = `
+      <div class="card-wrapper">
+        <button class="btn-edit-card" onclick="openEdit(currentCard)">✏️</button>
+        <div class="card" id="reverse-card" onclick="flipCard()">
+          <div id="reverse-content"></div>
+        </div>
+      </div>
+      <div class="action-btns">
+        <button class="btn-acquired" onclick="setStatus('acquired')">✅ Acquis</button>
+        <button class="btn-known" onclick="setStatus('known')">👍 Connu</button>
+        <button class="btn-tolearn" onclick="setStatus('toLearn')" id="btn-tolearn-reverse">🔁 À revoir</button>
+      </div>
+      <div class="pool-count" id="pool-count-reverse"></div>`;
+    el = document.getElementById('reverse-content');
+  }
+
   const c = currentCard;
   const statusStyle = STATUS_STYLE[c.status];
 
@@ -343,32 +348,21 @@ async function setStatus(status, cardId = null) {
   if (id == null) return;
   const card = cards.find(c => c.id === id);
   if (!card) return;
-
   card.status = status;
   if (status === 'toLearn') card.retryCount = (card.retryCount || 0) + 1;
-
   await saveCardStatus(id, status, card.retryCount);
   updateStats();
-
-  if (cardId == null) {
-    pickNext(status === 'acquired' ? id : null);
-  } else {
-    renderList();
-  }
+  if (cardId == null) { pickNext(status === 'acquired' ? id : null); }
+  else { renderList(); }
 }
 
-// ── LIST VIEW ─────────────────────────────────────────────────────
+// ── LIST VIEW ────────────────────────────────────────────────────
 function renderList() {
   if (mode !== 'list') return;
   const pool = getFiltered();
   document.getElementById('list-count').textContent = `${pool.length} mots`;
   const container = document.getElementById('list-items');
-
-  if (!pool.length) {
-    container.innerHTML = '<div class="empty-state">Aucun mot dans ce filtre.</div>';
-    return;
-  }
-
+  if (!pool.length) { container.innerHTML = '<div class="empty-state">Aucun mot dans ce filtre.</div>'; return; }
   container.innerHTML = pool.map(c => {
     const st = c.status;
     const retry = c.retryCount || 0;
@@ -405,37 +399,30 @@ function renderList() {
   }).join('');
 }
 
-function toggleExpand(id) {
-  expandedId = expandedId === id ? null : id;
-  renderList();
-}
+function toggleExpand(id) { expandedId = expandedId === id ? null : id; renderList(); }
 
-// ── MODES & FILTERS ───────────────────────────────────────────────
+// ── MODES & FILTERS ──────────────────────────────────────────────
 function setMode(m) {
   mode = m;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
   document.getElementById('card-view').style.display = m === 'card' ? 'flex' : 'none';
   document.getElementById('reverse-view').style.display = m === 'reverse' ? 'flex' : 'none';
   document.getElementById('list-view').style.display = m === 'list' ? 'block' : 'none';
-  if (m === 'list') renderList();
-  else pickNext();
+  if (m === 'list') renderList(); else pickNext();
 }
 
 function handleThemeChange(val) {
-  selectedTheme = val;
-  updateStats();
-  if (mode === 'list') renderList();
-  else pickNext();
+  selectedTheme = val; updateStats();
+  if (mode === 'list') renderList(); else pickNext();
 }
 
 function handleFilterChange(val) {
   selectedFilter = val;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === val));
-  if (mode === 'list') renderList();
-  else pickNext();
+  if (mode === 'list') renderList(); else pickNext();
 }
 
-// ── EDIT MODAL ────────────────────────────────────────────────────
+// ── EDIT MODAL ───────────────────────────────────────────────────
 function openEdit(card) {
   if (!card) return;
   editingCard = card;
@@ -448,73 +435,55 @@ function openEdit(card) {
   document.getElementById('edit-modal').style.display = 'flex';
 }
 
-function closeEdit() {
-  document.getElementById('edit-modal').style.display = 'none';
-  editingCard = null;
-}
+function closeEdit() { document.getElementById('edit-modal').style.display = 'none'; editingCard = null; }
 
 async function saveEdit() {
   if (!editingCard) return;
   const fields = {
     theme: document.getElementById('edit-theme').value.trim(),
-    fr: document.getElementById('edit-fr').value.trim(),
+    fr:    document.getElementById('edit-fr').value.trim(),
     genre: document.getElementById('edit-genre').value.trim(),
-    itSg: document.getElementById('edit-itsg').value.trim(),
-    itPl: document.getElementById('edit-itpl').value.trim(),
-    tip: document.getElementById('edit-tip').value.trim(),
+    itSg:  document.getElementById('edit-itsg').value.trim(),
+    itPl:  document.getElementById('edit-itpl').value.trim(),
+    tip:   document.getElementById('edit-tip').value.trim(),
   };
   if (!fields.fr || !fields.itSg) return alert('Le mot français et la traduction italienne sont obligatoires.');
-
   Object.assign(editingCard, fields);
   await saveCardEdit(editingCard.id, fields);
-  updateThemes();
-  updateStats();
+  updateThemes(); updateStats();
   if (currentCard?.id === editingCard.id) Object.assign(currentCard, fields);
-  renderCard();
-  renderList();
-  closeEdit();
+  renderCard(); renderList(); closeEdit();
 }
 
-// ── IMPORT ────────────────────────────────────────────────────────
+// ── IMPORT ───────────────────────────────────────────────────────
 function openImport() {
   document.getElementById('import-modal').style.display = 'flex';
   document.getElementById('paste-area').value = '';
   document.getElementById('import-msg').style.display = 'none';
 }
 
-function closeImport() {
-  document.getElementById('import-modal').style.display = 'none';
-}
-
-function triggerFileInput() {
-  document.getElementById('csv-file-input').click();
-}
+function closeImport() { document.getElementById('import-modal').style.display = 'none'; }
+function triggerFileInput() { document.getElementById('csv-file-input').click(); }
 
 function parseRows(data) {
   if (!data || !data.length) return [];
   const cols = Object.keys(data[0] || {});
   const normalize = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, '');
   const find = (row, ...keys) => {
-    for (const k of keys) {
-      const found = cols.find(c => normalize(c).includes(k));
-      if (found) return (row[found] || '').trim();
-    }
+    for (const k of keys) { const found = cols.find(c => normalize(c).includes(k)); if (found) return (row[found] || '').trim(); }
     return '';
   };
   const findCol = (row, ...exact) => {
-    for (const k of exact) {
-      const found = cols.find(c => c === k);
-      if (found) return (row[found] || '').trim();
-    }
+    for (const k of exact) { const found = cols.find(c => c === k); if (found) return (row[found] || '').trim(); }
     return '';
   };
   return data.map(r => ({
     theme: find(r, 'theme'),
-    fr: findCol(r, 'Mot en français') || find(r, 'francais', 'fr', 'mot'),
+    fr:    findCol(r, 'Mot en français') || find(r, 'francais', 'fr', 'mot'),
     genre: find(r, 'genre'),
-    itSg: findCol(r, 'Italien (SG)') || find(r, 'sg'),
-    itPl: findCol(r, 'Italien (PL)') || find(r, 'pl'),
-    tip: (() => { const c = cols.find(c => c.includes('Astuce') || c.includes('astuce') || c.includes('tip')); return c ? (r[c] || '').trim() : ''; })(),
+    itSg:  findCol(r, 'Italien (SG)') || find(r, 'sg'),
+    itPl:  findCol(r, 'Italien (PL)') || find(r, 'pl'),
+    tip:   (() => { const c = cols.find(c => c.includes('Astuce') || c.includes('astuce') || c.includes('tip')); return c ? (r[c] || '').trim() : ''; })(),
   }));
 }
 
@@ -522,44 +491,25 @@ async function mergeImport(rows) {
   showImportMsg('⏳ Import en cours...', 'warn');
   const timeout = setTimeout(() => showImportMsg('❌ Timeout — vérifie ta connexion ou reconnecte-toi.', 'warn'), 8000);
   try {
-    if (!rows.length) {
-      clearTimeout(timeout);
-      showImportMsg('⚠️ Aucune ligne trouvée dans le fichier.', 'warn');
-      return;
-    }
+    if (!rows.length) { clearTimeout(timeout); showImportMsg('⚠️ Aucune ligne trouvée dans le fichier.', 'warn'); return; }
     const validRows = rows.filter(r => r.fr && r.itSg);
-    if (!validRows.length) {
-      clearTimeout(timeout);
-      showImportMsg('⚠️ Colonnes non reconnues. En-têtes attendus : Mot en français, Italien (SG).', 'warn');
-      return;
-    }
+    if (!validRows.length) { clearTimeout(timeout); showImportMsg('⚠️ Colonnes non reconnues. En-têtes attendus : Mot en français, Italien (SG).', 'warn'); return; }
     const existing = new Set(cards.map(c => c.fr.toLowerCase().trim()));
     const toAdd = validRows.filter(r => !existing.has(r.fr.toLowerCase().trim()));
-    if (!toAdd.length) {
-      clearTimeout(timeout);
-      showImportMsg('⚠️ Aucun nouveau mot à ajouter (doublons ignorés).', 'warn');
-      return;
-    }
+    if (!toAdd.length) { clearTimeout(timeout); showImportMsg('⚠️ Aucun nouveau mot à ajouter (doublons ignorés).', 'warn'); return; }
     const count = await insertCards(toAdd);
     clearTimeout(timeout);
     if (count > 0) {
-      updateThemes();
-      updateStats();
-      renderList();
+      updateThemes(); updateStats(); renderList();
       if (currentCard === null) pickNext();
       showImportMsg(`✅ ${count} mot(s) ajouté(s) avec succès !`, 'success');
     }
-  } catch(err) {
-    clearTimeout(timeout);
-    showImportMsg('❌ Erreur : ' + err.message, 'warn');
-  }
+  } catch(err) { clearTimeout(timeout); showImportMsg('❌ Erreur : ' + err.message, 'warn'); }
 }
 
 function showImportMsg(msg, type) {
   const el = document.getElementById('import-msg');
-  el.textContent = msg;
-  el.className = 'import-msg ' + type;
-  el.style.display = 'block';
+  el.textContent = msg; el.className = 'import-msg ' + type; el.style.display = 'block';
 }
 
 function handleImportFile(input) {
@@ -572,9 +522,7 @@ function handleImportFile(input) {
     try {
       const result = Papa.parse(e.target.result, { header: true, skipEmptyLines: true });
       await mergeImport(parseRows(result.data));
-    } catch(err) {
-      showImportMsg('❌ Erreur : ' + err.message, 'warn');
-    }
+    } catch(err) { showImportMsg('❌ Erreur : ' + err.message, 'warn'); }
   };
   reader.onerror = () => showImportMsg('❌ Impossible de lire le fichier.', 'warn');
   reader.readAsText(file);
@@ -591,15 +539,11 @@ async function handleImportPaste() {
   await mergeImport(parseRows(result.data));
 }
 
-// ── EXPORT ────────────────────────────────────────────────────────
+// ── EXPORT ───────────────────────────────────────────────────────
 function openExport() {
   const rows = cards.map(c => ({
-    'Thème': c.theme,
-    'Mot en français': c.fr,
-    'Genre': c.genre,
-    'Italien (SG)': c.itSg,
-    'Italien (PL)': c.itPl,
-    '🧠 Astuce mnémotechnique': c.tip,
+    'Thème': c.theme, 'Mot en français': c.fr, 'Genre': c.genre,
+    'Italien (SG)': c.itSg, 'Italien (PL)': c.itPl, '🧠 Astuce mnémotechnique': c.tip,
   }));
   document.getElementById('export-textarea').value = Papa.unparse(rows);
   document.getElementById('export-modal').style.display = 'flex';
@@ -607,31 +551,22 @@ function openExport() {
   document.getElementById('btn-copy').textContent = '📋 Copier tout';
 }
 
-function closeExport() {
-  document.getElementById('export-modal').style.display = 'none';
-}
+function closeExport() { document.getElementById('export-modal').style.display = 'none'; }
 
 function copyCSV() {
   const ta = document.getElementById('export-textarea');
   navigator.clipboard.writeText(ta.value).then(() => {
     const btn = document.getElementById('btn-copy');
-    btn.className = 'btn-copy copied';
-    btn.textContent = '✅ Copié !';
-    setTimeout(() => {
-      btn.className = 'btn-copy';
-      btn.textContent = '📋 Copier tout';
-    }, 2000);
+    btn.className = 'btn-copy copied'; btn.textContent = '✅ Copié !';
+    setTimeout(() => { btn.className = 'btn-copy'; btn.textContent = '📋 Copier tout'; }, 2000);
   });
 }
 
-// ── KEYBOARD ──────────────────────────────────────────────────────
+// ── KEYBOARD ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (document.getElementById('edit-modal').style.display !== 'none') return;
   if (mode === 'list') return;
-  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-    e.preventDefault();
-    flipCard();
-  }
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); flipCard(); }
   if (e.key === '1') setStatus('acquired');
   if (e.key === '2') setStatus('known');
   if (e.key === '3') setStatus('toLearn');
