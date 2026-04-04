@@ -992,10 +992,10 @@
     <div class="import-section">
       <div class="import-section-title">📂 Option 1 — Fichier CSV</div>
       <div class="import-section-hint">Colonnes : <code>Thème, Mot en français, Genre, Italien (SG), Italien (PL), Astuce</code></div>
-      <label class="btn-file-label">
+      <button class="btn-file-label" onclick="triggerFileInput()">
         📂 Choisir un fichier .csv
-        <input type="file" accept=".csv" style="display:none" onchange="handleImportFile(this)" />
-      </label>
+      </button>
+      <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleImportFile(this)" />
     </div>
     <div class="import-section">
       <div class="import-section-title">📋 Option 2 — Coller depuis Excel / Google Sheets</div>
