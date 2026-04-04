@@ -1,6 +1,6 @@
 // ── CONFIG SUPABASE ──────────────────────────────────────────────
 const SUPABASE_URL = 'https://qipkstvmlbjtvmboyyov.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpcGtzdHZtbGJqdHZtYm95eW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjQ2NDAsImV4cCI6MjA5MDkwMDY0MH0.ZWA-TlRMRXIeHMCaemv-YqmWL713hZnexHxUDHwVz5c';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpcGtzdHZtbGJqdHZtYm95eW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjQ2NDAsImV4cCI6MjA5MDkwMDY0MH0.ZWA-TlRMRXIeHMCaemv-YqmWV713hZnexHxUDHwVz5c';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── STATE ────────────────────────────────────────────────────────
