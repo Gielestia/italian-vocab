@@ -3,6 +3,7 @@ const SUPABASE_URL = 'https://qipkstvmlbjtvmboyyov.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpcGtzdHZtbGJqdHZtYm95eW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjQ2NDAsImV4cCI6MjA5MDkwMDY0MH0.ZWA-TlRMRXIeHMCaemv-YqmWV713hZnexHxUDHwVz5c';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
 // ── STATE ────────────────────────────────────────────────────────
 let cards = [];
 let currentCard = null;
@@ -23,6 +24,24 @@ const STATUS_STYLE = {
   acquired: { bg: '#dcfce7', color: '#16a34a' },
   toLearn:  { bg: '#fee2e2', color: '#dc2626' },
 };
+
+// ✅ AJOUTE CE BLOC ICI ⬇️
+init();
+
+async function init() {
+  const { data } = await sb.auth.getSession();
+
+  if (data?.session?.user) {
+    userId = data.session.user.id;
+
+    document.getElementById('auth-page').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('app').style.flexDirection = 'column';
+
+    await loadCards();
+    pickNext();
+  }
+}
 
 // ── AUTH ──────────────────────────────────────────────────────────
 function switchTab(tab) {
@@ -89,14 +108,38 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 // ── DATA ──────────────────────────────────────────────────────────
 async function loadCards() {
-  const { data, error } = await sb.from('vocabulary').select('*').eq('user_id', userId).order('created_at');
-  if (error) { console.error(error); return; }
+  // ✅ sécurité : éviter appel sans user connecté
+  if (!userId) {
+    console.warn("⛔ loadCards appelé sans userId");
+    return;
+  }
+
+  const { data, error } = await sb
+    .from('vocabulary')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
   cards = data.map(r => ({
-    id: r.id, theme: r.theme || '', fr: r.fr || '', genre: r.genre || '',
-    itSg: r.it_sg || '', itPl: r.it_pl || '', tip: r.tip || '',
-    status: r.status || 'unseen', retryCount: r.retry_count || 0,
+    id: r.id,
+    theme: r.theme || '',
+    fr: r.fr || '',
+    genre: r.genre || '',
+    itSg: r.it_sg || '',
+    itPl: r.it_pl || '',
+    tip: r.tip || '',
+    status: r.status || 'unseen',
+    retryCount: r.retry_count || 0,
   }));
-  updateThemes(); updateStats(); renderList();
+
+  updateThemes();
+  updateStats();
+  renderList();
 }
 
 async function saveCardStatus(cardId, status, retryCount) {
