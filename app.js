@@ -25,23 +25,6 @@ const STATUS_STYLE = {
   toLearn:  { bg: '#fee2e2', color: '#dc2626' },
 };
 
-// ✅ AJOUTE CE BLOC ICI ⬇️
-init();
-
-async function init() {
-  const { data } = await sb.auth.getSession();
-
-  if (data?.session?.user) {
-    userId = data.session.user.id;
-
-    document.getElementById('auth-page').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('app').style.flexDirection = 'column';
-
-    await loadCards();
-    pickNext();
-  }
-}
 
 // ── AUTH ──────────────────────────────────────────────────────────
 function switchTab(tab) {
@@ -94,11 +77,15 @@ async function logout() {
 
 // ── INIT ──────────────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async (event, session) => {
+  console.log("AUTH EVENT:", event, session);
+
   if (session?.user) {
     userId = session.user.id;
+
     document.getElementById('auth-page').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('app').style.flexDirection = 'column';
+
     await loadCards();
     pickNext();
   } else {
@@ -108,11 +95,12 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 // ── DATA ──────────────────────────────────────────────────────────
 async function loadCards() {
-  // ✅ sécurité : éviter appel sans user connecté
   if (!userId) {
     console.warn("⛔ loadCards appelé sans userId");
     return;
   }
+
+  console.log("🚀 loadCards lancé avec userId:", userId);
 
   const { data, error } = await sb
     .from('vocabulary')
@@ -136,6 +124,8 @@ async function loadCards() {
     status: r.status || 'unseen',
     retryCount: r.retry_count || 0,
   }));
+
+  console.log("📦 cartes récupérées:", cards);
 
   updateThemes();
   updateStats();
