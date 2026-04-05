@@ -975,7 +975,8 @@
     <div class="input-group"><label>Italien (SG)</label><input id="edit-itsg" /></div>
     <div class="input-group"><label>Italien (PL)</label><input id="edit-itpl" /></div>
     <div class="input-group"><label>💡 Astuce mnémotechnique</label><textarea id="edit-tip" rows="2"></textarea></div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="display:flex;align-items:center;gap:0.75rem;margin-top:1.25rem">
+      <a href="#" onclick="deleteCard();return false" style="color:#f06060;text-decoration:underline;font-size:0.85rem;font-weight:600;margin-right:auto;white-space:nowrap">🗑 Supprimer ce mot</a>
       <button class="btn-cancel" onclick="closeEdit()">Annuler</button>
       <button class="btn-save" onclick="saveEdit()">💾 Sauvegarder</button>
     </div>
