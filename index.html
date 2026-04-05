@@ -991,7 +991,15 @@
       <button class="btn-close" onclick="closeImport()">✕</button>
     </div>
     <div class="import-section">
-      <div class="import-section-title">📂 Option 1 — Fichier CSV</div>
+      
+      <div class="import-section">
+  <div class="import-section-title">🇮🇹 Option 1 — Vocabulaire de base italien</div>
+  <div class="import-section-hint">Une liste de mots essentiels pour démarrer.</div>
+  <button class="btn-file-label" onclick="importerVocabBase()" style="background: linear-gradient(135deg, #38b87a, #6dddaa);">
+    ⬇️ Importer le vocabulaire de base
+  </button>
+</div>
+      <div class="import-section-title">📂 Option 2 — Fichier CSV</div>
       <div class="import-section-hint">Colonnes : <code>Thème, Mot en français, Genre, Italien (SG), Italien (PL), Astuce</code></div>
       <button class="btn-file-label" onclick="triggerFileInput()">
         📂 Choisir un fichier .csv
@@ -999,7 +1007,7 @@
       <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleImportFile(this)" />
     </div>
     <div class="import-section">
-      <div class="import-section-title">📋 Option 2 — Coller depuis Excel / Google Sheets</div>
+      <div class="import-section-title">📋 Option 3 — Coller depuis Excel / Google Sheets</div>
       <div class="import-section-hint">Colle tes données avec en-têtes. Séparateur tabulation ou virgule accepté.</div>
       <textarea class="import-textarea" id="paste-area" rows="5" placeholder="Thème&#9;Mot en français&#9;Genre&#9;Italien (SG)&#9;Italien (PL)&#9;Astuce&#10;La famille&#9;mère&#9;f&#9;madre&#9;madri&#9;"></textarea>
       <button class="btn-import-paste" onclick="handleImportPaste()">➕ Importer le texte collé</button>
