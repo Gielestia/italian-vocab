@@ -105,7 +105,8 @@ async function loadCards() {
       .from('vocabulary')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at');
+      .order('created_at')
+      .limit(5000);
     if (error) {
           console.error(error);
           return;
