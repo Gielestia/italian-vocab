@@ -1006,12 +1006,19 @@
       </button>
       <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleImportFile(this)" />
     </div>
-    <div class="import-section">
-      <div class="import-section-title">📋 Option 3 — Coller depuis Excel / Google Sheets</div>
-      <div class="import-section-hint">Colle tes données avec en-têtes. Séparateur tabulation ou virgule accepté.</div>
-      <textarea class="import-textarea" id="paste-area" rows="5" placeholder="Thème&#9;Mot en français&#9;Genre&#9;Italien (SG)&#9;Italien (PL)&#9;Astuce&#10;La famille&#9;mère&#9;f&#9;madre&#9;madri&#9;"></textarea>
-      <button class="btn-import-paste" onclick="handleImportPaste()">➕ Importer le texte collé</button>
-    </div>
+    
+<div class="import-section">
+  <div class="import-section-title">✏️ Option 3 - Ajouter des mots manuellement</div>
+  <div id="add-success-msg" style="display:none;margin-bottom:0.75rem;padding:0.5rem 1rem;border-radius:0.75rem;background:#dcfce7;color:#16a34a;font-size:0.875rem;text-align:center"></div>
+  <div class="input-group"><label>Thème</label><input id="add-theme" placeholder="Ex: La famille" /></div>
+  <div class="input-group"><label>Mot français</label><input id="add-fr" placeholder="Ex: mère" /></div>
+  <div class="input-group"><label>Genre (m/f…)</label><input id="add-genre" placeholder="Ex: f" /></div>
+  <div class="input-group"><label>Italien (SG)</label><input id="add-itsg" placeholder="Ex: madre" /></div>
+  <div class="input-group"><label>Italien (PL)</label><input id="add-itpl" placeholder="Ex: madri" /></div>
+  <div class="input-group"><label>💡 Astuce</label><textarea id="add-tip" rows="2"></textarea></div>
+  <button class="btn-import-paste" onclick="saveAdd()">➕ Ajouter ce mot</button>
+</div>
+    
     <div id="import-msg" style="display:none" class="import-msg"></div>
   </div>
 </div>
