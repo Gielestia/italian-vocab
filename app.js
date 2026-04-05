@@ -95,50 +95,36 @@ sb.auth.onAuthStateChange((event, session) => {
 });
 
 // ── DATA ──────────────────────────────────────────────────────────
-
-async function proposerVocabBase() {
-  const ok = confirm("Bienvenue ! Veux-tu commencer avec une liste de vocabulaire italien de base ?");
-  if (!ok) return;
-  
-  const response = await fetch('vocab-base.csv');
-  const text = await response.text();
-  const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-  await mergeImport(parseRows(result.data));
-}
-
 async function loadCards() {
-  if (!userId) {
-    console.warn("⛔ loadCards appelé sans userId");
-    return;
-  }
-  console.log("🚀 loadCards lancé avec userId:", userId);
-  const { data, error } = await sb
-    .from('vocabulary')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at');
-  if (error) {
-    console.error(error);
-    return;
-  }
-  cards = data.map(r => ({
-    id: r.id,
-    theme: r.theme || '',
-    fr: r.fr || '',
-    genre: r.genre || '',
-    itSg: r.it_sg || '',
-    itPl: r.it_pl || '',
-    tip: r.tip || '',
-    status: r.status || 'unseen',
-    retryCount: r.retry_count || 0,
-  }));
-  console.log("📦 cartes récupérées:", cards);
-  updateThemes();
-  updateStats();
-  renderList();
-  if (cards.length === 0) {
-    proposerVocabBase();
-  }
+    if (!userId) {
+          console.warn("⛔ loadCards appelé sans userId");
+          return;
+    }
+    console.log("🚀 loadCards lancé avec userId:", userId);
+    const { data, error } = await sb
+      .from('vocabulary')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at');
+    if (error) {
+          console.error(error);
+          return;
+    }
+    cards = data.map(r => ({
+          id: r.id,
+          theme: r.theme || '',
+          fr: r.fr || '',
+          genre: r.genre || '',
+          itSg: r.it_sg || '',
+          itPl: r.it_pl || '',
+          tip: r.tip || '',
+          status: r.status || 'unseen',
+          retryCount: r.retry_count || 0,
+    }));
+    console.log("📦 cartes récupérées:", cards);
+    updateThemes();
+    updateStats();
+    renderList();
 }
 
 async function saveCardStatus(cardId, status, retryCount) {
