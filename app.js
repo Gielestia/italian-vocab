@@ -569,14 +569,30 @@ function handleImportFile(input) {
     input.value = '';
 }
 
-async function handleImportPaste() {
-    const text = document.getElementById('paste-area').value.trim();
-    if (!text) return;
-    let result = Papa.parse(text, { header: true, skipEmptyLines: true });
-    if (!result.data.length || Object.keys(result.data[0]).length < 2) {
-          result = Papa.parse(text, { header: true, skipEmptyLines: true, delimiter: '\t' });
-    }
-    await mergeImport(parseRows(result.data));
+async function saveAdd() {
+  const fr = document.getElementById('add-fr').value.trim();
+  const itSg = document.getElementById('add-itsg').value.trim();
+  if (!fr || !itSg) return alert('Le mot français et la traduction italienne sont obligatoires.');
+  const newCard = {
+    theme: document.getElementById('add-theme').value.trim(),
+    fr, itSg,
+    genre: document.getElementById('add-genre').value.trim(),
+    itPl: document.getElementById('add-itpl').value.trim(),
+    tip: document.getElementById('add-tip').value.trim(),
+  };
+  const count = await insertCards([newCard]);
+  if (count > 0) {
+    updateThemes(); updateStats(); renderList();
+    const msg = document.getElementById('add-success-msg');
+    msg.textContent = `✅ "${fr}" ajouté ! Tu peux continuer.`;
+    msg.style.display = 'block';
+    document.getElementById('add-fr').value = '';
+    document.getElementById('add-genre').value = '';
+    document.getElementById('add-itsg').value = '';
+    document.getElementById('add-itpl').value = '';
+    document.getElementById('add-tip').value = '';
+    document.getElementById('add-fr').focus();
+  }
 }
 
 // ── EXPORT ───────────────────────────────────────────────────────
