@@ -470,6 +470,21 @@ async function saveEdit() {
     renderCard(); renderList(); closeEdit();
 }
 
+async function deleteCard() {
+    if (!editingCard) return;
+    const id = editingCard.id;
+    showSaving();
+    const { error } = await sb.from('vocabulary').delete().eq('id', id).eq('user_id', userId);
+    hideSaving();
+    if (error) { console.error(error); return; }
+    cards = cards.filter(c => c.id !== id);
+    if (currentCard && currentCard.id === id) { currentCard = null; }
+    updateThemes();
+    updateStats();
+    closeEdit();
+    if (mode === 'list') { renderList(); } else { pickNext(); }
+}
+
 // ── IMPORT ───────────────────────────────────────────────────────
 function openImport() {
     document.getElementById('import-modal').style.display = 'flex';
