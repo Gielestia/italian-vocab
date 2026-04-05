@@ -570,6 +570,7 @@ function handleImportFile(input) {
 }
 
 async function saveAdd() {
+  console.log("userId au moment du saveAdd:", userId);
   const fr = document.getElementById('add-fr').value.trim();
   const itSg = document.getElementById('add-itsg').value.trim();
   if (!fr || !itSg) return alert('Le mot français et la traduction italienne sont obligatoires.');
