@@ -486,6 +486,14 @@ async function deleteCard() {
 }
 
 // ── IMPORT ───────────────────────────────────────────────────────
+async function importerVocabBase() {
+  showImportMsg('⏳ Chargement du vocabulaire de base...', 'warn');
+  const response = await fetch('vocab-base.csv');
+  const text = await response.text();
+  const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+  await mergeImport(parseRows(result.data));
+}
+
 function openImport() {
     document.getElementById('import-modal').style.display = 'flex';
     document.getElementById('paste-area').value = '';
